@@ -1,3 +1,3 @@
 # nuke
 
-Foundy's Nuke rez package
+Rez recipe for Foundy's Nuke

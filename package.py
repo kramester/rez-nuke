@@ -2,7 +2,7 @@ from rez.utils.lint_helper import env, alias, building
 
 name = "nuke"
 
-version = "11.3.6"
+version = "12.1.5"
 
 authors = ["Foundry"]
 
