@@ -1,4 +1,4 @@
-- name: "Install Nuke"
+- name: "Build and Install {{ pkg_name }}"
   hosts: localhost
   connection: local
 
