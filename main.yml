@@ -1,0 +1,35 @@
+- name: "Install Nuke"
+  hosts: localhost
+  connection: local
+
+  vars:
+    - semantic_version: "{{ version }}"
+    - major_version: "{{ semantic_version.split('.')[0] | int }}"
+    - minor_version: "{{ semantic_version.split('.')[1] | int }}"
+    - patch_version: "{{ semantic_version.split('.')[2] | int }}"
+    - majorminor_version: "{{ major_version }}.{{ minor_version }}"
+    - product_version: "{{ majorminor_version }}v{{ patch_version }}"
+    - download_url_base: "https://www.foundry.com/products/download_product?file="
+
+  tasks:
+    - include_vars: vars-linux.yml
+      when: ansible_os_family == 'RedHat'
+
+    # - include_vars: vars-windows.yml
+    #   when: ansible_os_family == 'Windows'
+
+    - include: build-linux.yml
+      when: ansible_os_family == 'RedHat'
+
+    # - include: build-windows.yml
+    #   when: ansible_os_family == 'Windows'
+
+    - include: install-linux.yml
+      when:
+        - post_build == 'install'
+        - ansible_os_family == 'RedHat'
+
+    # - include: install-windows.yml
+    #   when:
+    #     - post_build == 'install'
+    #     - ansible_os_family == 'Windows'

@@ -2,33 +2,34 @@ from rez.utils.lint_helper import env, alias, building
 
 name = "nuke"
 
-version = "12.2.10"
+version = "10.5.8"
 
 authors = ["Foundry"]
 
-description = "Nuke 12.2v10"
+description = (
+    "Family of products centered around Nuke, a powerful node-based compositing tool."
+)
 
-variants = [["platform-linux", "arch-x86_64"]]
+variants = [
+    ["platform-linux"],
+    # ["platform-windows"],
+]
 
-tools = [
-    'nuke',
-    'nukex',
-    'nukeassist',
-    'nukestudio',
-    'hiero',
-    'hieroplayer'
-    ]
+tools = ["nuke", "nukex", "nukeassist", "nukestudio", "hiero", "hieroplayer"]
 
 has_plugins = True
 
 uuid = "ext.nuke"
 
+build_requires = ["ansible"]
+
+build_command = "ansible-playbook {root}/main.yml -e 'pkg_name={name} version={version} build_path={build_path} install_path={install_path} post_build={install}'"
+
 
 def commands():
 
-    env.PATH.prepend("{root}/nuke")
-    env.foundry_LICENSE = "4101@10.0.2.49"
-    env.FN_DISABLE_LICENSE_DIALOG = 3  # suppress temporary license dialog
-
-    if building:
-        env.CMAKE_MODULE_PATH.append("{root}/cmake")
+    env.PATH.prepend("{root}/app")
+    env.foundry_LICENSE = "${LICENSE_FILES}/foundry_rlm.lic"
+    env.FN_DISABLE_LICENSE_DIALOG = (
+        3  # suppress temporary license dialog until 3 days from expiry
+    )

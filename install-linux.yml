@@ -1,0 +1,12 @@
+- name: ensure install folders exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "u+rwx,g+rx,o+rx"
+  with_items:
+    - "{{ install_path }}/app"
+
+- name: "sync build to install path"
+  synchronize:
+    src: "{{ build_path }}/src/build/Nuke{{ product_version }}/" # trailing slash is important
+    dest: "{{ install_path }}/app"

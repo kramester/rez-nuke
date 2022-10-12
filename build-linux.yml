@@ -1,0 +1,94 @@
+- name: ensure build folders exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "u+rwx,g+rx,o+rx"
+  with_items:
+    - "{{ installer_archive_folder }}"
+    - "{{ build_path }}/tmp"
+    - "{{ build_path }}/src/build/Nuke{{ product_version }}"
+
+- name: check for existing install archive of Nuke{{ product_version }}
+  stat:
+    path: "{{ installer_archive_path }}"
+  register: archive_file
+
+# - debug: var=archive_file
+
+- name: download Nuke{{ product_version }} install archive
+  get_url:
+    url: "{{ download_url }}"
+    dest: "{{ installer_archive_path }}"
+    mode: 0777
+  when: not archive_file.stat.exists
+
+- name: check for existing extracted installer for Nuke{{ product_version }}
+  stat:
+    path: "{{ build_path }}/tmp/{{ installer_exe }}"
+  register: installer_file
+
+# - debug: var=installer_file
+
+- name: extract nuke installer
+  unarchive:
+    remote_src: yes
+    src: "{{ installer_archive_path }}"
+    dest: "{{ build_path }}/tmp"
+    mode: "u+rwx,g+rx,o+rx"
+    creates: "{{ build_path }}/tmp/{{ installer_exe }}"
+  when: not installer_file.stat.exists
+
+- name: check for existing build of Nuke{{ product_version }}
+  stat:
+    path: "{{ build_path }}/src/build/Nuke{{ product_version }}/Nuke{{ majorminor_version }}"
+  register: build_files
+
+- name: build Nuke{{ product_version }} with installer file
+  command: |
+    {{ build_path }}/tmp/{{ installer_exe }} --accept-foundry-eula --exclude-subdir --prefix={{ build_path }}/src/build/Nuke{{ product_version }}
+  when:
+    - semantic_version is version('12', '>=')
+    - not build_files.stat.exists
+  register: nukeinstall
+
+# prior to nuke 12, the nuke installer could just be unarchived directly
+- name: build Nuke{{ product_version }} via unarchive
+  unarchive:
+    src: "{{ build_path }}/tmp/{{ installer_exe }}"
+    remote_src: yes
+    dest: "{{ build_path }}/src/build/Nuke{{ product_version }}"
+    mode: "u+rwx,g+rx,o+rx"
+  when:
+    - semantic_version is version('12', '<')
+    - not build_files.stat.exists
+  register: nukeinstall
+
+# Nuke 12.2 requires a patch
+- name: "download Nuke12.2 patch"
+  get_url:
+    url: "{{ download_url_base }}Nuke-12.2.FileIO.v2-linux-x86-64.zip" # TODO: make dynamic
+    dest: "{{ build_path }}/tmp/nuke-patch.zip"
+    mode: "u+rwx,g+rx,o+rx"
+  when:
+    - semantic_version is version('12.2', '>=')
+    - semantic_version is version('13', '<')
+
+- name: patch Nuke{{ product_version }} FileIO
+  unarchive:
+    src: "{{ build_path }}/tmp/nuke-patch.zip"
+    dest: "{{ build_path }}/src/build/Nuke{{ product_version }}/plugins/"
+    mode: "u+rwx,g+rx,o+rx"
+    remote_src: true
+  when:
+    - semantic_version is version('12.2', '>=')
+    - semantic_version is version('13', '<')
+
+# - debug: var=nukeinstall.stdout_lines
+
+- name: create wrapper scripts
+  with_items:
+    ["hiero", "hieroplayer", "nuke", "nukeassist", "nukestudio", "nukex"]
+  template:
+    src: "wrappers/linux/{{ item }}.sh.j2"
+    dest: "{{ build_path }}/src/build/Nuke{{ product_version }}/{{ item }}"
+    mode: 0755
