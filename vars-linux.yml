@@ -2,11 +2,12 @@ _installer_archive_9: "Nuke{{ product_version }}-linux-x86-release-64.tgz"
 _installer_archive_12_0_2: "Nuke-{{ product_version }}-linux-x86-64-installer.tgz" # installer archive name changed at Nuke12.0v2+
 _installer_archive_12_2_7: "Nuke{{ product_version }}-linux-x86_64.tgz" # installer archive name changed at Nuke12.2v7+
 _installer_exe_9: "Nuke{{ product_version }}-linux-x86-release-64-installer"
-_installer_exe_12: "Nuke-{{ product_version }}-linux-x86-64-installer.run" # installer exe changed at Nuke12+
+_installer_exe_12_0_0: "Nuke-{{ product_version }}-linux-x86-64-installer.run" # installer exe changed at Nuke12+
+_installer_exe_12_2_0: "Nuke{{ product_version }}-linux-x86_64.run" # installer exe changed at Nuke12.2+
 
 download_url: "{{ download_url_base }}{{ installer_archive }}"
 
 installer_archive: "{{ _installer_archive_12_2_7 if (semantic_version is version('12.2.7', '>=')) else (_installer_archive_12_0_2 if (semantic_version is version('12.0.2', '>=')) else _installer_archive_9) }}"
 installer_archive_folder: "{{ ansible_env.PIPE_ROOT }}/sw/src/{{ pkg_name }}"
 installer_archive_path: "{{ installer_archive_folder }}/{{ installer_archive }}"
-installer_exe: "{{ _installer_exe_12 if (semantic_version is version('12.0.0', '>=')) else _installer_exe_9 }}"
+installer_exe: "{{ _installer_exe_12_2_0 if (semantic_version is version('12.2.0', '>=')) else (_installer_exe_12_0_0 if (semantic_version is version('12.0.0', '>=')) else _installer_exe_9) }}"
